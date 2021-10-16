@@ -1,4 +1,10 @@
+const $arenas = document.querySelector('.arenas');
+const $button = document.querySelector('.button');
+let winner = null; 
+
+// Классы игроков
 const player1 = {
+    player: 1,
     name: 'Player 1',
     hp: 100,
     img: 'http://reactmarathon-api.herokuapp.com/assets/liukang.gif',
@@ -9,6 +15,7 @@ const player1 = {
 }
 
 const player2 = {
+    player: 2,
     name: 'Player 2',
     hp: 100,
     img: 'http://reactmarathon-api.herokuapp.com/assets/subzero.gif',
@@ -18,38 +25,93 @@ const player2 = {
     }
 }
 
-function createPlayer(playerClassName, playerClass) {
-    // Создаем игрока
-    const $player = document.createElement('div');
-    $player.classList.add(playerClassName);
-    
-    // Добавляем игроку прогресс бар
-    $progress = document.createElement('div');
-    $progress.classList.add('progressbar');
-    // Жизнь
-    $life = document.createElement('div');
-    $life.classList.add('life');
-    $life.style.width = `${playerClass.hp}%`;
-    $progress.appendChild($life);
-    // Имя игрока
-    $name = document.createElement('div');
-    $name.classList.add('name');
-    $name.textContent = playerClass.name.toUpperCase();
-    $progress.appendChild($name);
-    $player.appendChild($progress);
-    
-    // Добавляем игроку изображение персонажа
-    $character = document.createElement('div');
-    $character.classList.add('character');
-    $img = document.createElement('img');
-    $img.src = playerClass.img;
-    $character.appendChild($img);
-    $player.appendChild($character);
-
-    // Добавим игрока в арену
-    const $arenas = document.querySelector('.arenas');
-    $arenas.appendChild($player);
+// Функция создания HTML элемента с указанным классом
+function createTag(tagParent, tagName, tagClass) {
+    // Создаем элемент
+    $tag = document.createElement(tagName);
+    // Добавляем класс, если он передан
+    if (tagClass) {
+        $tag.classList.add(tagClass);
+    }
+    // Присоединяем к родительскому элементу, если он указан
+    if (tagParent) {
+        tagParent.appendChild($tag);
+    }
+    return $tag;
 }
 
-createPlayer('player1', player1);
-createPlayer('player2', player2);
+// Создание игрока
+function createPlayer(playerClass) {
+    // Создаем игрока
+    const $player = createTag(null, 'div', `player${playerClass.player}`);
+    
+    // Добавляем игроку прогресс бар
+    $progress = createTag($player, 'div', 'progressbar');
+    // Жизнь
+    $life = createTag($progress, 'div', 'life');
+    $life.style.width = `${playerClass.hp}%`;
+    // Имя игрока
+    $name = createTag($progress, 'div', 'name');
+    $name.textContent = playerClass.name.toUpperCase();
+    
+    // Добавляем игроку изображение персонажа
+    $character = createTag($player, 'div', 'character');
+    $img = createTag($character, 'img', null);
+    $img.src = playerClass.img;
+
+    return $player;
+}
+
+/*
+function playerLose(name) {
+    const $loseTitle = createTag($arenas, 'div', 'loseTitle');
+    $loseTitle.innerText = name + ' lose';
+    return $loseTitle;
+}
+*/
+
+// Вывод сообщения о победе
+function playerWins(name) {
+    const $winsTitle = createTag($arenas, 'div', 'winsTitle');
+    $winsTitle.innerText = name + ' wins';
+    $button.disabled = true;
+}
+
+// Получаем случайное число от 1 до 20
+function getRandomNumber() {
+    return Math.ceil(Math.random() * 20);
+}
+
+// Получим противника для player
+function getEnemy(player) {
+    if (player.player === 1) {
+        return player2;
+    } else {
+        return player1;
+    }
+}
+
+// Меняем жизнь игрока
+function changeHP(player) {
+    if (!winner) { // Уменьшаем жизнь, если победителя еще нет
+        const $playerLife = document.querySelector('.player' + player.player + ' .life');
+        player.hp -= getRandomNumber();
+        if (player.hp < 0) {
+            player.hp = 0;
+        }
+        $playerLife.style.width = player.hp +'%'
+        if (player.hp === 0) {
+            //playerLose(player.name);
+            winner = getEnemy(player);
+            playerWins(winner.name);
+        }
+    }
+}
+
+$button.addEventListener('click', () => {
+    changeHP(player1);
+    changeHP(player2);
+})
+
+$arenas.appendChild(createPlayer(player1));
+$arenas.appendChild(createPlayer(player2));
