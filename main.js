@@ -1,6 +1,6 @@
 const $arenas = document.querySelector('.arenas');
 const $button = document.querySelector('.button');
-let winner = null; 
+let winner = null;
 
 // Классы игроков
 const player1 = {
@@ -82,35 +82,32 @@ function getRandomNumber() {
     return Math.ceil(Math.random() * 20);
 }
 
-// Получим противника для player
-function getEnemy(player) {
-    if (player.player === 1) {
-        return player2;
-    } else {
-        return player1;
-    }
-}
-
 // Меняем жизнь игрока
 function changeHP(player) {
-    if (!winner) { // Уменьшаем жизнь, если победителя еще нет
+    // Если есть победитель, не будем уменьшать жизнь
+    if (!winner) { 
         const $playerLife = document.querySelector('.player' + player.player + ' .life');
         player.hp -= getRandomNumber();
         if (player.hp < 0) {
             player.hp = 0;
         }
         $playerLife.style.width = player.hp +'%'
-        if (player.hp === 0) {
-            //playerLose(player.name);
-            winner = getEnemy(player);
-            playerWins(winner.name);
-        }
     }
+    return player.hp;
 }
 
 $button.addEventListener('click', () => {
     changeHP(player1);
+    if (player1.hp === 0) {
+        winner = player2;
+    }
     changeHP(player2);
+    if (player2.hp === 0) {
+        winner = player1;
+    }
+    if (winner) {
+        playerWins(winner.name)
+    }
 })
 
 $arenas.appendChild(createPlayer(player1));
